@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nestedScrollView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:focusable="auto"
+    android:focusableInTouchMode="true"
+    tools:context=".FirstFragment">
+
+    <TextView
+        android:id="@+id/textView_StartDate"
+        android:layout_width="130dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="96dp"
+        android:layout_marginBottom="60dp"
+        android:text="YYYY-MM-DD"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintEnd_toStartOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView_StartTime"
+        android:layout_width="130dp"
+        android:layout_height="24dp"
+        android:text="hh:mm:ss"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView_StartDate"
+        app:layout_constraintHorizontal_bias="0.441"
+        app:layout_constraintStart_toStartOf="@+id/textView_StartDate"
+        app:layout_constraintTop_toBottomOf="@+id/textView_StartDate" />
+
+    <TextView
+        android:id="@+id/textView_FinishDate"
+        android:layout_width="130dp"
+        android:layout_height="24dp"
+        android:layout_marginTop="96dp"
+        android:layout_marginBottom="60dp"
+        android:text="YYYY-MM-DD"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toTopOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintStart_toEndOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView_FinishTime"
+        android:layout_width="130dp"
+        android:layout_height="24dp"
+        android:text="hh:mm:ss"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView_FinishDate"
+        app:layout_constraintStart_toStartOf="@+id/textView_FinishDate"
+        app:layout_constraintTop_toBottomOf="@+id/textView_FinishDate" />
+
+    <TextView
+        android:id="@+id/textView_StartLabel"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:text="start"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        app:layout_constraintBottom_toTopOf="@+id/textView_StartDate"
+        app:layout_constraintEnd_toEndOf="@+id/textView_StartDate"
+        app:layout_constraintStart_toStartOf="@+id/textView_StartDate" />
+
+    <TextView
+        android:id="@+id/textView_FinishLabel"
+        android:layout_width="130dp"
+        android:layout_height="wrap_content"
+        android:text="finish"
+        android:textAlignment="center"
+        android:textColor="@color/gray_font"
+        app:layout_constraintBottom_toTopOf="@+id/textView_FinishDate"
+        app:layout_constraintEnd_toEndOf="@+id/textView_FinishDate"
+        app:layout_constraintHorizontal_bias="0.51"
+        app:layout_constraintStart_toStartOf="@+id/textView_FinishDate" />
+
+    <TextView
+        android:id="@+id/textView_ElapsedTimeLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="256dp"
+        android:text="elapsed time"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView_ElapsedTime"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="hh:mm:dd"
+        android:textAlignment="center"
+        android:textSize="60sp"
+        app:layout_constraintEnd_toEndOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintStart_toStartOf="@+id/textView_ElapsedTimeLabel"
+        app:layout_constraintTop_toBottomOf="@+id/textView_ElapsedTimeLabel" />
+
+    <AutoCompleteTextView
+        android:id="@+id/autoCompleteTextView_TaskTitle"
+        android:layout_width="320dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="32dp"
+        android:hint="task title"
+        android:inputType="text|textAutoComplete"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView_ElapsedTime" />
+
+    <ImageButton
+        android:id="@+id/imageButton_Run"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="80dp"
+        android:src="@drawable/baseline_play_arrow_24"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/autoCompleteTextView_TaskTitle" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
