@@ -1,17 +1,19 @@
 # elapsed_time_counter
 
-経過時間カウンター。Google Play Console Developerアカウントを作ったものの、何年も何もせず放置していたらアカウントがBanされそうになった、あわてて作った時間カウントアプリ。
+経過時間カウンター。Google Play Console Developerアカウントを作ったものの、何年も何もせず放置していたらアカウントがBanされそうになったので、あわてて作った時間カウントアプリ。
 
 ## 機能
 
 経過時間をカウントするストップウォッチ的なもの。カウントした結果は GMail の本文へ転記できるので、GMail 経由で Microsoft Excel や Google Spreadsheet にコピペできる。
+
+![./doc/screenshot01.png](./doc/screenshot01.png)
 
 ## 改善したい点
 
 あわてて作ったアプリなので非常に作りが粗い。以下の点は改善したい。
 
 - 2024-07-23 時点で認識している問題点。
-  - [ ] onDestroyの対応が甘く、他アプリの裏に回ると元の状態に復帰できず、カウントした時間が消えてしまう。
+  - [x] onDestroyの対応が甘く、他アプリの裏に回ると元の状態に復帰できず、カウントした時間が消えてしまう。 → 2024-07-24に解決した。
   - [ ] ViewHistoryで表示できる内容を選択・コピペできない。
   - [ ] TaskTitleを履歴から選択できない（そうしたつもりだったけど選択できない。）
   - [ ] GMail本文にタブ文字を書き込めない（ExcelやSpreadSheetにコピペする元ネタとしてタブ区切りテキストを書き込むつもりだったが、それができない。）
@@ -135,7 +137,8 @@ toastはドロイド君のアイコンが表示されるようになったよう
 - @Diavolo, [Android]リリースビルドを実行して、スマホにインストールする方法, Qiita, 2021-11-03, <https://qiita.com/Diavolo/items/c80193e0374f882922e5>
 <https://qiita.com/LicaOka/items/3f5586bfb6a90649168b>
 
-新 UI の Androiod Studio ではハンバーガーメニューを触るとメニューが出てくる。出力先はここ→ `elapsed_time_counter\app\release\app-release.apk`
+新 UI の Androiod Studio ではハンバーガーメニューを触るとメニューが出てくる。[Build] - [Generate Signed App Bundle /App ...] を選択する。
+出力先はここ→ `elapsed_time_counter\app\release\app-release.aab`
 
 ### バージョンコード
 
@@ -172,6 +175,18 @@ toastはドロイド君のアイコンが表示されるようになったよう
 ### ActivityのonDestroyからの復帰
 
 - @teradonburi, Androidのライフサイクルからアプリ設計を見直してみる, Qiita, 2017-02-26, <https://qiita.com/teradonburi/items/f2aac85e53f8fa5c79bc>
+- @shira-jun, onSaveInstanceState()と回転問題, Qiita, 2019-06-08, <https://qiita.com/shira-jun/items/dd57eb6eccc516982fd7>
+- 緒方聡, 知らずに作って大丈夫？Androidの基本的なライフサイクルイベント31選, @IT, 2016-04-04, <https://atmarkit.itmedia.co.jp/ait/articles/1604/04/news011_3.html>
+- @wbspry (Y), 【Android】savedInstanceStateの意味と開発者オプション【初心者向け】, Qiita, 2017-03-21, <https://qiita.com/wbspry/items/c6e342a9008bebef75bd>
+- usuiat, Jetpack Compose入門(15) 画面遷移, 縁側プログラミング, 2022-01-16, <https://engawapg.net/jetpack-compose/1393/screen-transition/>
+- SanGong, Fragmentを使ってみる（その５）ActivityからFragmentを操作, SanGongブログ, 2022-10-13, <https://sangong-blog.org/?p=500>
+- fineblue206, [Android]Bundleに独自クラスを格納する方法（Parcelableインターフェイス）, fineblue206.net My IT memorandum, 2018-06-28, <https://fineblue206.net/archives/271>
+- -, Bundle, Android Developers, -, <https://developer.android.com/reference/android/os/Bundle#summary>
+- Ararami Studio, AndroidのActivityは再作成に備えてSavedInstanceStateを使おう, Ararami Studio, 2018-01-18, <https://araramistudio.jimdo.com/2018/01/18/androidのactivityは再作成に備えてsavedinstancestateを使おう/>
+- @kaiinui, Android の罠 [1] ちゃんと onSaveInstanceState する, Qiita, 2014-08-19, <https://qiita.com/kaiinui/items/8a6a7dddb9310f645da3>
 
 Activityがdestroyした後に復帰させた場合、firstfragmentを再描画することになる。
 幸いなことに時刻さえ保存できていれば再描画するだけでどうにかなるはず。
+
+動きを確認する場合、［開発者ツール］ - ［アプリ］ - ［アクティビティを保持しない］を有効化するとよい。
+この設定を有効化すると、アプリが裏に回っただけでアクティビティが破棄されるようになる。

@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -147,6 +148,17 @@ class MainActivity : AppCompatActivity() {
                     .setAnchorView(R.id.fab).show()
             }
         }
+
+        //-------------------------------------------------
+        // Killされた場合に値を復帰する。
+        // 一応ifで判定しているので!!.を使わなくてもビルドが通る。
+        //-------------------------------------------------
+        if (savedInstanceState != null) {
+            app_state = savedInstanceState.getInt(APP_STATE_INDEX)
+            startLocalDateTime = LocalDateTime.parse(savedInstanceState.getString(START_LOCAL_DATE_TIME_INDEX))
+            finishLocalDateTime = LocalDateTime.parse(savedInstanceState.getString(FINISH_LOCAL_DATE_TIME_INDEX))
+            elapsedLocalDateTime = savedInstanceState.getString(ELAPSED_LOCAL_DATE_TIME_INDEX).toString()
+        }
     }
 
     /**
@@ -241,6 +253,39 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
+    //--------
+    // killされた場合に値を保存する。
+    //--------
+    private var _task_title_bk: String = ""
+    private val APP_STATE_INDEX: String = "APP_STATE_INDEX"
+    private val START_LOCAL_DATE_TIME_INDEX: String = "START_LOCAL_DATE_TIME_INDEX"
+    private val FINISH_LOCAL_DATE_TIME_INDEX: String = "FINISH_LOCAL_DATE_TIME_INDEX"
+    private val ELAPSED_LOCAL_DATE_TIME_INDEX: String = "ELAPSED_LOCAL_DATE_TIME_INDEX"
+
+    /**
+     * Activity破棄時の動作。
+     *
+     * 以下の3つの値を保存する。この3つの値さえ取得できていれば、1秒後に元の状態を表示できる。
+     *
+     * - アプリの状態が「計測開始前」・「計測中」・「計測終了後」のいずれであるか。
+     * - startLocalDateTimeの値
+     * - finishLocalDateTimeの値
+     * - elapsedLocalDateTimeの値
+     *
+     * もしかするとタスクのタイトルもバックアップが必要かもしれないが、値が勝手に復帰してくれているみたいなので対応は保留とする。
+     *
+     * - タスクのタイトル
+     *
+     * @param outState アクティビティのBundleオブジェクト？ なんだろう。
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt(APP_STATE_INDEX, app_state)
+        outState.putString(START_LOCAL_DATE_TIME_INDEX, startLocalDateTime.toString())
+        outState.putString(FINISH_LOCAL_DATE_TIME_INDEX, finishLocalDateTime.toString())
+        outState.putString(ELAPSED_LOCAL_DATE_TIME_INDEX, elapsedLocalDateTime.toString())
+    }
+
     //------------------------------------------------------------------
     // 履歴を表示するフラグメント（SecondFragment）に関するメンバ変数・メソッド。
     //------------------------------------------------------------------
@@ -298,6 +343,9 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Second Fragment was already drew.")
                 } else {
                     Log.d(TAG, "Draw Second Fragment now.")
+//                    // TODO:タスクタイトルのバックアップは不要かもしれない。
+//                    _task_title_bk = findViewById<AutoCompleteTextView>(R.id.autoCompleteTextView_TaskTitle).text.toString()
+//                    Log.d(TAG, "onOptionsItemSelected: ${_task_title_bk}")
                     navController.navigate(R.id.action_FirstFragment_to_SecondFragment)
                 }
                 true
@@ -345,6 +393,10 @@ class MainActivity : AppCompatActivity() {
     fun showOffSoftKeyboard() {
         val inputMethodManager = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(binding.root.windowToken, InputMethodManager.HIDE_NOT_ALWAYS)
+
+//        // TODO: タスクタイトルのバックアップは不要かもしれない。
+//        _task_title_bk = findViewById<AutoCompleteTextView>(R.id.autoCompleteTextView_TaskTitle).text.toString()
+//        Log.d(TAG, "showOffSoftKeyboard: ${_task_title_bk}")
     }
 
     /**
