@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.ArrayAdapter
 import androidx.navigation.fragment.findNavController
 import io.github.dnv825.elapsedtimecounter.databinding.FragmentFirstBinding
 import java.time.LocalDateTime
@@ -92,6 +93,18 @@ class FirstFragment : Fragment() {
             }
         }
 
+        // AutoCompleteTextViewに候補を表示する。
+        val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+        binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
+        binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
+
+        // AutoCompleteTextViewにフォーカスした際にドロップダウンを表示する。
+        binding.autoCompleteTextViewTaskTitle.setOnFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
+                binding.autoCompleteTextViewTaskTitle.showDropDown()
+            }
+        }
+
         // PLAYボタン・STOPボタン・REFRESHボタン押下時の動作。
         binding.imageButtonRun.setOnClickListener {
             val app_state = maActivity?.getAppState()
@@ -108,6 +121,13 @@ class FirstFragment : Fragment() {
                 // 結果をファイルへ出力する。
                 val history = "${binding.textViewStartDate.text} ${binding.textViewStartTime.text}\t${binding.textViewFinishDate.text} ${binding.textViewFinishTime.text}\t${binding.textViewElapsedTime.text}\t${binding.autoCompleteTextViewTaskTitle.text}\n"
                 maActivity?.appendHistory(history)
+
+                // タイトルの履歴（TaskTitleHistoryOptions）を更新する。
+                maActivity?.updateTaskTitleHistoryOptions(binding.autoCompleteTextViewTaskTitle.text.toString(), maActivity!!.finishLocalDateTime)
+                val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+                binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
+                binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
+
                 Log.d(TAG, history)
             } else {
                 // アプリの状態を PLAY_STATE にしてボタンを更新する。

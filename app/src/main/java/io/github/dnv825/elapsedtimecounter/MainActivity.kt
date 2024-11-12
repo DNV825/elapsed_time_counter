@@ -22,9 +22,26 @@ import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.room.Dao
+import androidx.room.Database
+import androidx.room.Delete
+import androidx.room.Entity
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.PrimaryKey
+import androidx.room.Query
+import androidx.room.Room
+import androidx.room.RoomDatabase
+import androidx.room.TypeConverter
+import androidx.room.TypeConverters
 import com.google.android.material.snackbar.Snackbar
 import io.github.dnv825.elapsedtimecounter.databinding.ActivityMainBinding
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Timer
 import java.util.concurrent.Future
 import kotlin.concurrent.schedule
@@ -51,6 +68,173 @@ class MainActivity : AppCompatActivity() {
     //------------------
     /** Log.d()の第1引数へ指定するクラス名。 */
     private val TAG  = MainActivity::class.java.getSimpleName()
+
+    //--------------------------------------------------------
+    // 以下のように最大5件のタイトルを保存する DB を Room で作成する。
+    //
+    // | title (primary key) | update_date      |
+    // | ---                 | ---              |
+    // | タイトル 1           | 2024-10-19 14:30 |
+    // | タイトル 2           | 2024-10-18 11:30 |
+    // | タイトル 3           | 2024-10-17 19:30 |
+    // | タイトル 4           | 2024-10-20 12:30 |
+    // | タイトル 5           | 2024-10-21  1:30 |
+    //
+    // タイトルが一致する場合、 update_date を更新する。
+    // タイトルが一致しない場合、新しい行を追加する。
+    // 総行数が5行を超えた場合、 update_date が最も古い行を削除する。
+    // taskHistryArray を更新する。
+    //--------------------------------------------------------
+    // AutoCompleteTextViewの候補とする項目の配列。
+    var taskTitleHistoryOptions: MutableList<String> = mutableListOf()
+
+    // DBインスタンス。
+    lateinit var db_instance: TaskTitleHistoryRepository
+
+    @Entity
+    data class TaskTitleHistory(
+        @PrimaryKey val title: String,
+        val update_date: LocalDateTime
+    )
+
+    class LocalDateTimeConverter {
+        val LOCAL_DATE_TIME_FORMAT_FOR_DB = "yyyy-MM-dd HH:mm:ss"
+
+        /**
+         * LocalDateTime → フォーマット文字列（yyyy-MM-dd HH:mm:ss）
+         */
+        @TypeConverter
+        fun fromLocalDateTime(localDateTime: LocalDateTime): String {
+            val dateTimeFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT_FOR_DB)
+            return localDateTime.format(dateTimeFormatter)
+        }
+
+        /**
+         * フォーマット文字列（yyyy-MM-dd HH:mm:ss） → LocalDateTime
+         */
+        @TypeConverter
+        fun toLocalDateTime(stringDateTime: String): LocalDateTime {
+            val dateTimeFormatter = DateTimeFormatter.ofPattern(LOCAL_DATE_TIME_FORMAT_FOR_DB)
+            return LocalDateTime.parse(stringDateTime, dateTimeFormatter)
+        }
+    }
+
+    @Dao
+    interface TaskTitleHistoryDao {
+        @Insert(onConflict = OnConflictStrategy.REPLACE)
+        suspend fun insert(taskTitleHistory: TaskTitleHistory)
+
+        @Delete
+        suspend fun delete(taskTitleHistory: TaskTitleHistory)
+
+        @Query("SELECT * FROM TaskTitleHistory ORDER BY update_date ASC")
+        fun getAll(): Array<TaskTitleHistory>
+    }
+
+    // 参考：https://developer.android.com/codelabs/basic-android-kotlin-compose-persisting-data-room?hl=ja#6
+    @Database(entities = [TaskTitleHistory::class], exportSchema = false, version = 1)
+    @TypeConverters(LocalDateTimeConverter::class)
+    abstract class TaskTitleHistoryDatabase: RoomDatabase() {
+        abstract fun taskTitleHistoryDao(): TaskTitleHistoryDao
+        companion object {
+            // データベース名。
+            val DATABASE_NAME = "TaskTitleHistoryDatabase"
+
+            @Volatile
+            private var Instance: TaskTitleHistoryDatabase? = null
+            fun getDatabase(context: Context): TaskTitleHistoryDatabase {
+                return Instance ?: synchronized(this) {
+                    Room.databaseBuilder(context, TaskTitleHistoryDatabase::class.java, DATABASE_NAME).build().also { Instance = it}
+                }
+            }
+        }
+    }
+
+    // データベースを操作するエンティティ。
+    interface TaskTitleHistoryAccessor {
+        suspend fun insertTaskTitleHistory(taskTitleHistory: TaskTitleHistory)
+        suspend fun deleteTaskTitleHistory(taskTitleHistory: TaskTitleHistory)
+        fun getAllTaskTitleHistory(): Array<TaskTitleHistory>
+    }
+
+    class TaskTitleHistoryRepository(private val taskTitleHistoryDao: TaskTitleHistoryDao): TaskTitleHistoryAccessor {
+        override suspend fun insertTaskTitleHistory(taskTitleHistory: TaskTitleHistory) {
+            taskTitleHistoryDao.insert(taskTitleHistory)
+        }
+
+        override suspend fun deleteTaskTitleHistory(taskTitleHistory: TaskTitleHistory) {
+            taskTitleHistoryDao.delete(taskTitleHistory)
+        }
+
+        override fun getAllTaskTitleHistory(): Array<TaskTitleHistory> {
+            return taskTitleHistoryDao.getAll()
+        }
+    }
+
+    /**
+     * TaskTitleHistoryOptions を初期化する。
+     */
+    fun initializeTaskTitleHistoryOptions() {
+        GlobalScope.launch {
+            val job = launch {
+                val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+                var i = 0;
+                for (option in options) {
+                    taskTitleHistoryOptions.add(option.title)
+                }
+            }
+        }
+    }
+
+    /**
+     * TaskTitleHistoryOptions を更新する。
+     *
+     * DB に格納するデータは 5 件以内に収まるようにする。
+     */
+    fun updateTaskTitleHistoryOptions(aTitle: String, aLocalDateTime: LocalDateTime) {
+        GlobalScope.launch {
+            val job = launch {
+                // 新しいタイトル履歴を追加する。
+                // 同じタイトル履歴が存在する場合、上書きする。
+                val newOption: TaskTitleHistory = TaskTitleHistory(title = aTitle, update_date = aLocalDateTime)
+                db_instance.insertTaskTitleHistory(newOption)
+
+                // タイトル履歴を格納すると5件を超える場合、DBから最も古いタイトル履歴を削除する。
+                var options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+                var updated_options: Array<TaskTitleHistory> = options
+                if (options.count() > 5) {
+                    val _job = launch {
+                        db_instance.deleteTaskTitleHistory(options[0])
+                    }
+                    updated_options = options.drop(1).toTypedArray()
+                }
+
+                // taskTitleHistoryOptions を更新する。
+                taskTitleHistoryOptions.clear()
+                for (option in updated_options) {
+                    taskTitleHistoryOptions.add(option.title)
+                }
+            }
+            job.join()
+        }
+    }
+
+    /**
+     * TaskTitleHistoryOptions の全データを削除する。
+     */
+    fun deleteTaskTitleHistoryOptions() {
+        GlobalScope.launch {
+            val job = launch {
+                val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+                for (option in options) {
+                    db_instance.deleteTaskTitleHistory(option)
+                }
+            }
+            job.join()
+        }
+
+        taskTitleHistoryOptions.clear()
+    }
 
     //----------------------------
     // タイマー用のメンバ変数と定数。
@@ -148,6 +332,14 @@ class MainActivity : AppCompatActivity() {
                     .setAnchorView(R.id.fab).show()
             }
         }
+
+        //--------------------------------------
+        // TaskTitleHistoryOptions を初期化する。
+        //--------------------------------------
+        val db = TaskTitleHistoryDatabase.getDatabase(applicationContext)
+        val dao = db.taskTitleHistoryDao()
+        db_instance = TaskTitleHistoryRepository(dao)
+        initializeTaskTitleHistoryOptions()
 
         //-------------------------------------------------
         // Killされた場合に値を復帰する。
@@ -323,6 +515,7 @@ class MainActivity : AppCompatActivity() {
      * 選択可能なメニューは以下の通り。
      *   - 履歴を見る
      *   - 履歴を消す
+     *   - タスクタイトルの履歴を消す
      *
      * @param item 選択されたメニュー項目。
      * @return true:成功。false:失敗。
@@ -359,6 +552,35 @@ class MainActivity : AppCompatActivity() {
                     {
                         // 履歴を削除する（実際には履歴ファイルを削除し、再生成する。）
                         clearHistory()
+
+                        // NavHostFragmentの取得
+                        val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
+
+                        // 現在表示されているフラグメントを取得し、スナックバーに履歴を削除した旨を表示する。
+                        val currentFragment = navHostFragment.childFragmentManager.fragments[0]
+                        val view = currentFragment?.view as View
+                        Snackbar.make(view, getString(R.string.deleting_history_completed), Snackbar.LENGTH_SHORT).setAnchorView(R.id.fab).show()
+//                        // Toastを使う場合はこう。
+//                        Toast.makeText(this, getString(R.string.deleting_history_completed), Toast.LENGTH_SHORT).show()
+                    },
+                    getString(R.string.cancel),
+                    {
+                        // 何もしない。
+                    }
+                )
+                val manager = supportFragmentManager
+                dialog.show(manager, "ConfirmDialog")
+                true
+            }
+            // 「タスクタイトルの履歴を消す」を選択した場合。
+            R.id.action_delete_task_title_history -> {
+                // Ok/Cancelボタンをもつダイアログを表示し、Ok選択時にタスクタイトルの履歴を削除する。
+                val dialog = ConfirmDialog(
+                    getString(R.string.confirm_delete_task_title_history),
+                    getString(R.string.delete),
+                    {
+                        // タスクタイトルの履歴を削除する（実際には履歴ファイルを削除し、再生成する。）
+                        deleteTaskTitleHistoryOptions()
 
                         // NavHostFragmentの取得
                         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment

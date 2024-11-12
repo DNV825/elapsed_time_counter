@@ -12,11 +12,12 @@
 
 あわてて作ったアプリなので非常に作りが粗い。以下の点は改善したい。
 
-- 2024-07-23 時点で認識している問題点。
+- 2024-11-12 時点で認識している問題点。
   - [x] onDestroyの対応が甘く、他アプリの裏に回ると元の状態に復帰できず、カウントした時間が消えてしまう。 → 2024-07-24に解決した。
-  - [ ] ViewHistoryで表示できる内容を選択・コピペできない。
-  - [ ] TaskTitleを履歴から選択できない（そうしたつもりだったけど選択できない。）
+  - [ ] ~~ViewHistoryで表示できる内容を選択・コピペできない。~~ → 2024-10-19に改めて見直すと、この機能は別に要らない気がするので削除する。
+  - [x] TaskTitleを履歴から選択できない（そうしたつもりだったけど選択できない。） → 2024-10-19に解決した。5件の履歴を表示するようにした。
   - [ ] GMail本文にタブ文字を書き込めない（ExcelやSpreadSheetにコピペする元ネタとしてタブ区切りテキストを書き込むつもりだったが、それができない。）
+  - [x] メイン画面を縦スクロールできず、マルチウィンドウ表示時に開始・停止ボタンを押下できない → 2024-11-12に解決した。正しい方法なのかはわからない。
 
 ## 参考資料
 
@@ -109,7 +110,7 @@ EditTextのinputTypeを明示的に設定する
   - ○LocalDateTimeを使った現在日時の取得, <https://jp-seemore.com/app/14982/#toc5>
 - @orimomo, 【Kotlin】LocalDateで2つの日付を比較し、日数の差分を取得する, Qiita, 2019-07-28, <https://qiita.com/orimomo/items/c15fff517701a56b0cd9>
 
-## toast
+### toast
 
 toastはドロイド君のアイコンが表示されるようになったようだ。思ってたのと違う感じの表示で、あんまり使いたくない。
 
@@ -145,6 +146,7 @@ toastはドロイド君のアイコンが表示されるようになったよう
 - it-chan, Androidアプリのバージョンコードはこうつける – Androidアプリ開発（10）, ITミュージアム, 2023-08-01, <https://koyari.jp/it/version-code-name/1115/>
 
 `app\build.gradle.kts` の `defaultConfig.versionCode = 1" の数値を上げ、`defaultConfig.versionName = "1.0.0"` を任意のバージョンにすればよい。
+File - Project Structure からも変更可能。
 
 ### Android Studioのrunボタンが押せない
 
@@ -190,3 +192,43 @@ Activityがdestroyした後に復帰させた場合、firstfragmentを再描画�
 
 動きを確認する場合、［開発者ツール］ - ［アプリ］ - ［アクティビティを保持しない］を有効化するとよい。
 この設定を有効化すると、アプリが裏に回っただけでアクティビティが破棄されるようになる。
+
+### AutoCompleteTextView
+
+- yanzm, Android　AutoCompleteTextView で候補に入力履歴を表示する, Y.A.M の 雑記帳, 2013-02/14, <https://y-anz-m.blogspot.com/2013/02/androidautocompletetextview.html>
+- Unknown, ドロップダウンの表示(AutoCompleteTextView), Androidアプリ開発！！, 2013-03-12, <https://androidgamepark.blogspot.com/2013/03/autocompletetextview.html>
+- @wa2c (wa2c), AndroidのAutoCompleteTextViewで、常に全ての候補を一覧に表示する, Qiita, 2018-09-18, <https://qiita.com/wa2c/items/2bf9172543ca29af76bc>
+- -, AutoCompleteTextView, Android Developers, 2024-07-18<https://developer.android.com/reference/android/widget/AutoCompleteTextView>
+- Yusuke, Android の AutoCompleteTextView で文字と背景が白くなってしまう, 穀風, 2013-08-14, <https://kokufu.blogspot.com/2013/08/android-autocompletetextview.html>
+- BG1, AutoCompleteTextView.showDropDown, 車輪のx発明 ~B.G's Blog~, 2018-10-16, <https://bg1.hatenablog.com/entry/2018/10/06/210000>
+- @Horie1024, AutoCompleteTextViewでハッシュタグの補完を実装してみる, Qiita, 2016-02-01, <https://qiita.com/Horie1024/items/545659072250ca0b24ed>
+
+### DB 操作 (Room)
+
+SQLite を直接操作するのではなく、 Room という抽象レイヤー操作機構を利用するのが今のトレンドらしい。
+
+- -, Room を使用してローカル データベースにデータを保存する, Android Developers, 2024-08-22, <https://developer.android.com/training/data-storage/room?hl=ja>
+- <https://note.com/haine_rion23/n/nd61ae9ee4bbd>
+- <https://developer.android.com/build/migrate-to-ksp?hl=ja>
+- <https://qiita.com/sdkei/items/6acf34f081ddde59ce11
+- <https://torikatsu923.hatenablog.com/entry/2019/11/14/154251>
+- <https://developer.android.com/codelabs/basic-android-kotlin-compose-persisting-data-room?hl=ja#0>
+- <https://qiita.com/yamauchihrt/items/bbe11274150cc41573c1>
+- <https://pg.akihiro-takeda.com/android-room-error/>
+- <https://tech-fill.net/android-room-sample/#DatabaseSingleton>
+- <https://qiita.com/iTakahiro/items/e39533b7fc07573a14da>
+- <https://github.com/kotlin/kotlinx.coroutines/blob/master/README.md>
+
+- kotlin のバージョンを調べる方法：
+  - <https://www.reddit.com/r/AndroidStudio/comments/1dgagab/how_to_check_kotlin_version/>
+    - File - Settings - Other Settings - Kotlin Compiler ... Kotlin Compiler Version / Language Version / API Version
+      - 現在使っているのは v1.9.0 のようだ。
+      - そうなると、対応する KSP のバージョンはこれかな <https://github.com/google/ksp/releases/tag/1.9.0-1.0.13>
+- kapt はメンテナンスモードに入っているので、使わないことにしよう。 <https://kotlinlang.org/docs/kapt.html>
+  - `build.gradle.kts` と `app/build.gradle.kts` に Room を使うための参照と KSP を使うための参照を追記した。 
+
+- 以下の手順でデータベースの中身を表示できる。
+  - Android Studio で、メニューバーから [View] > [Tool Windows] > [App Inspection] を選択します。
+  - [Database Inspector] タブを選択します。
+
+<https://support.google.com/googleplay/android-developer/answer/9844679?hl=ja>
