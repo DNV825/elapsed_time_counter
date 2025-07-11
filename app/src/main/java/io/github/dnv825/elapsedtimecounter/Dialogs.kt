@@ -40,3 +40,34 @@ class ConfirmDialog(private val message: String,
         return builder.create()
     }
 }
+
+/**
+ * Okダイアログクラス。
+ *
+ * Okボタンを持つダイアログのクラス。
+ *
+ * @param okLabel Okボタン上に表示する文字列。
+ * @param okSelected Okボタン選択時に動作させる関数。
+ */
+class OkDialog(private val message: String,
+                    private val okLabel: String,
+                    private val okSelected: () -> Unit,
+): DialogFragment() {
+
+    /**
+     * ダイアログを生成する。
+     *
+     * Ok/Cancelボタンを持つダイアログを生成する。
+     *
+     * @param savedInstanceState （自動生成されたので使い道はよくわからない。）
+     * @return コンストラクタの引数を反映したDialogクラス。
+     */
+    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
+        val builder = AlertDialog.Builder(requireActivity())
+        builder.setMessage(message)
+        builder.setPositiveButton(okLabel) { dialog, which -> okSelected() }
+
+//        return super.onCreateDialog(savedInstanceState)
+        return builder.create()
+    }
+}

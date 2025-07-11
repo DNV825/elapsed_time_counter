@@ -13,6 +13,7 @@ import android.view.MenuItem
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
+import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -579,10 +580,14 @@ class MainActivity : AppCompatActivity() {
                     getString(R.string.confirm_delete_task_title_history),
                     getString(R.string.delete),
                     {
-                        // タスクタイトルの履歴を削除する（実際には履歴ファイルを削除し、再生成する。）
+                        // タスクタイトルの履歴を削除する。
                         deleteTaskTitleHistoryOptions()
 
-                        // NavHostFragmentの取得
+                        // autoCompleteTextViewTaskTitleの履歴を削除する。
+                        val fragment = supportFragmentManager.findFragmentById(R.id.FirstFragment) as? FirstFragment
+                        fragment?.deleteTaskTitleSuggestions()
+
+                        // NavHostFragmentの取得。
                         val navHostFragment = supportFragmentManager.findFragmentById(R.id.nav_host_fragment_content_main) as NavHostFragment
 
                         // 現在表示されているフラグメントを取得し、スナックバーに履歴を削除した旨を表示する。
@@ -599,6 +604,19 @@ class MainActivity : AppCompatActivity() {
                 )
                 val manager = supportFragmentManager
                 dialog.show(manager, "ConfirmDialog")
+                true
+            }
+            // 「バージョン情報」を選択した場合。
+            R.id.action_show_version -> {
+                // Okボタンをもつダイアログを表示し、Ok選択時にダイアログを閉じる。
+                val version_information = "${BuildConfig.ROOT_PROJECT_NAME} ${packageManager.getPackageInfo(packageName,0).versionName}"
+                val dialog = OkDialog(
+                    version_information,
+                    getString(R.string.ok),
+                    { },
+                )
+                val manager = supportFragmentManager
+                dialog.show(manager, "OkDialog")
                 true
             }
             // なんらかの要因で用意していないメニューが選択されたと判断された場合。

@@ -4,6 +4,7 @@
     <string name="action_view_history">View history</string>
     <string name="action_delete_history">Delete history</string>
     <string name="action_delete_task_title_history">Delete task title history</string>
+    <string name="action_show_version">Version Information</string>
     <!-- Strings used for fragments for navigation -->
     <string name="empty_label"></string>
     <string name="first_fragment_label">First Fragment</string>
@@ -11,6 +12,7 @@
     <string name="before_count">00:00:00</string>
     <string name="confirm_delete_history">Delete history?</string>
     <string name="confirm_delete_task_title_history">Delete task title history?</string>
+    <string name="ok">Ok</string>
     <string name="delete">Delete</string>
     <string name="cancel">Cancel</string>
     <string name="deleting_history_completed">Deleting history completed.</string>

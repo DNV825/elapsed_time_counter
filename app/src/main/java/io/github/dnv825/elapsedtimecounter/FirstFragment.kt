@@ -142,6 +142,19 @@ class FirstFragment : Fragment() {
 //        }
     }
 
+    /**
+     * 履歴リストを0件にする。
+     *
+     * メニューから履歴リストを消去した際に、表示される履歴リストを0件に更新する。
+     */
+    fun deleteTaskTitleSuggestions() {
+        val maActivity = activity as MainActivity?
+        maActivity?.updateTaskTitleHistoryOptions(binding.autoCompleteTextViewTaskTitle.text.toString(), maActivity!!.finishLocalDateTime)
+        val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+        binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
+        binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
+    }
+
     //----------------------------------------------------------------------------------
     // 日付・時刻の表示フォーマットの定義。
     // 一応「ISO 8601」に従うが、表示に使うのはローカル時刻であり、かつ表示として見やすく成型するので
