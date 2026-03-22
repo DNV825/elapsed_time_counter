@@ -18,6 +18,7 @@ import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.AppBarConfiguration
@@ -37,10 +38,12 @@ import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.google.android.material.snackbar.Snackbar
 import io.github.dnv825.elapsedtimecounter.databinding.ActivityMainBinding
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Timer
@@ -176,14 +179,22 @@ class MainActivity : AppCompatActivity() {
      * TaskTitleHistoryOptions を初期化する。
      */
     fun initializeTaskTitleHistoryOptions() {
-        GlobalScope.launch {
-            val job = launch {
-                val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
-                var i = 0;
-                for (option in options) {
-                    taskTitleHistoryOptions.add(option.title)
-                }
+//        GlobalScope.launch {
+//            val job = launch {
+//                val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+//                var i = 0;
+//                for (option in options) {
+//                    taskTitleHistoryOptions.add(option.title)
+//                }
+//            }
+//        }
+        lifecycleScope.launch {
+            val options: Array<TaskTitleHistory> = withContext(Dispatchers.IO) {
+                db_instance.getAllTaskTitleHistory()
             }
+
+            taskTitleHistoryOptions.clear()
+            taskTitleHistoryOptions.addAll(options.map { it.title })
         }
     }
 
@@ -193,30 +204,56 @@ class MainActivity : AppCompatActivity() {
      * DB に格納するデータは 5 件以内に収まるようにする。
      */
     fun updateTaskTitleHistoryOptions(aTitle: String, aLocalDateTime: LocalDateTime) {
-        GlobalScope.launch {
-            val job = launch {
+//        GlobalScope.launch {
+//            val job = launch {
+//                // 新しいタイトル履歴を追加する。
+//                // 同じタイトル履歴が存在する場合、上書きする。
+//                val newOption: TaskTitleHistory = TaskTitleHistory(title = aTitle, update_date = aLocalDateTime)
+//                db_instance.insertTaskTitleHistory(newOption)
+//
+//                // タイトル履歴を格納すると5件を超える場合、DBから最も古いタイトル履歴を削除する。
+//                var options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+//                var updated_options: Array<TaskTitleHistory> = options
+//                if (options.count() > 5) {
+//                    val _job = launch {
+//                        db_instance.deleteTaskTitleHistory(options[0])
+//                    }
+//                    updated_options = options.drop(1).toTypedArray()
+//                }
+//
+//                // taskTitleHistoryOptions を更新する。
+//                taskTitleHistoryOptions.clear()
+//                for (option in updated_options) {
+//                    taskTitleHistoryOptions.add(option.title)
+//                }
+//            }
+//            job.join()
+//        }
+        lifecycleScope.launch {
+            val updatedOptions: List<TaskTitleHistory> = withContext(Dispatchers.IO) {
                 // 新しいタイトル履歴を追加する。
                 // 同じタイトル履歴が存在する場合、上書きする。
-                val newOption: TaskTitleHistory = TaskTitleHistory(title = aTitle, update_date = aLocalDateTime)
+                val newOption = TaskTitleHistory(
+                    title = aTitle,
+                    update_date = aLocalDateTime
+                )
                 db_instance.insertTaskTitleHistory(newOption)
 
-                // タイトル履歴を格納すると5件を超える場合、DBから最も古いタイトル履歴を削除する。
-                var options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
-                var updated_options: Array<TaskTitleHistory> = options
-                if (options.count() > 5) {
-                    val _job = launch {
-                        db_instance.deleteTaskTitleHistory(options[0])
-                    }
-                    updated_options = options.drop(1).toTypedArray()
+                // タイトル履歴を取得する。
+                var options = db_instance.getAllTaskTitleHistory().toList()
+
+                // 5件を超える場合、最も古いタイトル履歴を削除する。
+                if (options.size > 5) {
+                    db_instance.deleteTaskTitleHistory(options[0])
+                    options = options.drop(1)
                 }
 
-                // taskTitleHistoryOptions を更新する。
-                taskTitleHistoryOptions.clear()
-                for (option in updated_options) {
-                    taskTitleHistoryOptions.add(option.title)
-                }
+                options
             }
-            job.join()
+
+            // UI 側のリストを更新する。
+            taskTitleHistoryOptions.clear()
+            taskTitleHistoryOptions.addAll(updatedOptions.map { it.title })
         }
     }
 
@@ -224,17 +261,28 @@ class MainActivity : AppCompatActivity() {
      * TaskTitleHistoryOptions の全データを削除する。
      */
     fun deleteTaskTitleHistoryOptions() {
-        GlobalScope.launch {
-            val job = launch {
+//        GlobalScope.launch {
+//            val job = launch {
+//                val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
+//                for (option in options) {
+//                    db_instance.deleteTaskTitleHistory(option)
+//                }
+//            }
+//            job.join()
+//        }
+//
+//        taskTitleHistoryOptions.clear()
+        lifecycleScope.launch {
+            withContext(Dispatchers.IO) {
                 val options: Array<TaskTitleHistory> = db_instance.getAllTaskTitleHistory()
                 for (option in options) {
                     db_instance.deleteTaskTitleHistory(option)
                 }
             }
-            job.join()
+
+            taskTitleHistoryOptions.clear()
         }
 
-        taskTitleHistoryOptions.clear()
     }
 
     //----------------------------

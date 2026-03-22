@@ -94,7 +94,7 @@ class FirstFragment : Fragment() {
         }
 
         // AutoCompleteTextViewに候補を表示する。
-        val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+        val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
         binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
         binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
 
@@ -124,7 +124,7 @@ class FirstFragment : Fragment() {
 
                 // タイトルの履歴（TaskTitleHistoryOptions）を更新する。
                 maActivity?.updateTaskTitleHistoryOptions(binding.autoCompleteTextViewTaskTitle.text.toString(), maActivity!!.finishLocalDateTime)
-                val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+                val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
                 binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
                 binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
 
@@ -150,7 +150,7 @@ class FirstFragment : Fragment() {
     fun deleteTaskTitleSuggestions() {
         val maActivity = activity as MainActivity?
         maActivity?.updateTaskTitleHistoryOptions(binding.autoCompleteTextViewTaskTitle.text.toString(), maActivity!!.finishLocalDateTime)
-        val adapter = ArrayAdapter<String>(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
+        val adapter = ArrayAdapter<String>(requireContext(), android.R.layout.simple_spinner_dropdown_item, maActivity!!.taskTitleHistoryOptions)
         binding.autoCompleteTextViewTaskTitle.setAdapter(adapter)
         binding.autoCompleteTextViewTaskTitle.setThreshold(0); // 0文字入力すると候補を表示する設定だが、これだけではフォーカス時に候補が表示されない。
     }
